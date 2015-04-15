@@ -49,12 +49,13 @@ public class ImageReadPlatformServiceImpl implements ImageReadPlatformService {
             this.entityDisplayName = entityDisplayName;
         }
 
-        public String schema(String clientName) {
+        public String schema(ImageWritePlatformServiceJpaRepositoryImpl.IMAGE_TYPE imageType) {
             StringBuilder builder = new StringBuilder("image.id as id, image.location as location, image.storage_type_enum as storageType ");
-            if (ImageWritePlatformServiceJpaRepositoryImpl.IMAGE_TYPE.CLIENTS.toString().equals(clientName)) {
-                builder.append(" from m_image image , m_client client " + " where client.image_id = image.id and client.id=?");
-            } else if (ImageWritePlatformServiceJpaRepositoryImpl.IMAGE_TYPE.STAFF.toString().equals(clientName)) {
-                builder.append("from m_image image , m_staff staff " + " where staff.image_id = image.id and staff.id=?");
+            switch (imageType) {
+                case CLIENTS:
+                    builder.append(" from m_image image , m_client client " + " where client.image_id = image.id and client.id=?");
+                case STAFF:
+                    builder.append("from m_image image , m_staff staff " + " where staff.image_id = image.id and staff.id=?");
             }
             return builder.toString();
         }
@@ -83,7 +84,8 @@ public class ImageReadPlatformServiceImpl implements ImageReadPlatformService {
             }
             final ImageMapper imageMapper = new ImageMapper(displayName);
 
-            final String sql = "select " + imageMapper.schema(clientName);
+            final String sql = "select "
+                    + imageMapper.schema(ImageWritePlatformServiceJpaRepositoryImpl.IMAGE_TYPE.valueOf(clientName.toUpperCase()));
 
             final ImageData imageData = this.jdbcTemplate.queryForObject(sql, imageMapper, new Object[] { clientId });
             final ContentRepository contentRepository = this.contentRepositoryFactory.getRepository(imageData.storageType());

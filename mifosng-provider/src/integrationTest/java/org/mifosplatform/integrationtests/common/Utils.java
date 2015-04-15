@@ -76,11 +76,6 @@ public class Utils {
         return (T) from(json).get(jsonAttributeToGetBack);
     }
 
-    public static String performGetTextResponse(final RequestSpecification requestSpec, final ResponseSpecification responseSpec,
-                                                final String getURL){
-        return given().spec(requestSpec).expect().spec(responseSpec).log().ifError().when().get(getURL).andReturn().asString();
-    }
-
     public static byte[] performGetBinaryResponse(final RequestSpecification requestSpec, final ResponseSpecification responseSpec,
                                                 final String getURL){
         return given().spec(requestSpec).expect().spec(responseSpec).log().ifError().when().get(getURL).andReturn().asByteArray();
