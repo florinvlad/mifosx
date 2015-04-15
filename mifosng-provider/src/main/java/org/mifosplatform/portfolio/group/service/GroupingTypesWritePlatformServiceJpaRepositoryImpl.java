@@ -5,13 +5,7 @@
  */
 package org.mifosplatform.portfolio.group.service;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.joda.time.LocalDate;
 import org.mifosplatform.commands.domain.CommandWrapper;
@@ -32,26 +26,14 @@ import org.mifosplatform.organisation.office.exception.InvalidOfficeException;
 import org.mifosplatform.organisation.office.exception.OfficeNotFoundException;
 import org.mifosplatform.organisation.staff.domain.Staff;
 import org.mifosplatform.organisation.staff.domain.StaffRepositoryWrapper;
+import org.mifosplatform.portfolio.calendar.domain.*;
 import org.mifosplatform.portfolio.calendar.domain.Calendar;
-import org.mifosplatform.portfolio.calendar.domain.CalendarEntityType;
-import org.mifosplatform.portfolio.calendar.domain.CalendarInstance;
-import org.mifosplatform.portfolio.calendar.domain.CalendarInstanceRepository;
-import org.mifosplatform.portfolio.calendar.domain.CalendarType;
 import org.mifosplatform.portfolio.client.domain.Client;
 import org.mifosplatform.portfolio.client.domain.ClientRepositoryWrapper;
 import org.mifosplatform.portfolio.client.service.LoanStatusMapper;
 import org.mifosplatform.portfolio.group.api.GroupingTypesApiConstants;
-import org.mifosplatform.portfolio.group.domain.Group;
-import org.mifosplatform.portfolio.group.domain.GroupLevel;
-import org.mifosplatform.portfolio.group.domain.GroupLevelRepository;
-import org.mifosplatform.portfolio.group.domain.GroupRepositoryWrapper;
-import org.mifosplatform.portfolio.group.domain.GroupTypes;
-import org.mifosplatform.portfolio.group.exception.GroupAccountExistsException;
-import org.mifosplatform.portfolio.group.exception.GroupHasNoStaffException;
-import org.mifosplatform.portfolio.group.exception.GroupMemberCountNotInPermissibleRangeException;
-import org.mifosplatform.portfolio.group.exception.GroupMustBePendingToBeDeletedException;
-import org.mifosplatform.portfolio.group.exception.InvalidGroupLevelException;
-import org.mifosplatform.portfolio.group.exception.InvalidGroupStateTransitionException;
+import org.mifosplatform.portfolio.group.domain.*;
+import org.mifosplatform.portfolio.group.exception.*;
 import org.mifosplatform.portfolio.group.serialization.GroupingTypesDataValidator;
 import org.mifosplatform.portfolio.loanaccount.domain.Loan;
 import org.mifosplatform.portfolio.loanaccount.domain.LoanRepository;
@@ -123,6 +105,7 @@ public class GroupingTypesWritePlatformServiceJpaRepositoryImpl implements Group
         try {
             final String name = command.stringValueOfParameterNamed(GroupingTypesApiConstants.nameParamName);
             final String externalId = command.stringValueOfParameterNamed(GroupingTypesApiConstants.externalIdParamName);
+            final String mobileNo = command.stringValueOfParameterNamed(GroupingTypesApiConstants.mobileNoParamName);
 
             final AppUser currentUser = this.context.authenticatedUser();
             Long officeId = null;
@@ -162,8 +145,8 @@ public class GroupingTypesWritePlatformServiceJpaRepositoryImpl implements Group
                 submittedOnDate = command.localDateValueOfParameterNamed(GroupingTypesApiConstants.submittedOnDateParamName);
             }
 
-            final Group newGroup = Group.newGroup(groupOffice, staff, parentGroup, groupLevel, name, externalId, active, activationDate,
-                    clientMembers, groupMembers, submittedOnDate, currentUser);
+            final Group newGroup = Group.newGroup(groupOffice, staff, parentGroup, groupLevel, name, mobileNo, externalId, active,
+                    activationDate, clientMembers, groupMembers, submittedOnDate, currentUser);
 
             boolean rollbackTransaction = false;
             if (newGroup.isActive()) {

@@ -5,27 +5,9 @@
  */
 package org.mifosplatform.portfolio.group.domain;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.*;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -40,11 +22,7 @@ import org.mifosplatform.organisation.office.domain.Office;
 import org.mifosplatform.organisation.staff.domain.Staff;
 import org.mifosplatform.portfolio.client.domain.Client;
 import org.mifosplatform.portfolio.group.api.GroupingTypesApiConstants;
-import org.mifosplatform.portfolio.group.exception.ClientExistInGroupException;
-import org.mifosplatform.portfolio.group.exception.ClientNotInGroupException;
-import org.mifosplatform.portfolio.group.exception.GroupExistsInCenterException;
-import org.mifosplatform.portfolio.group.exception.GroupNotExistsInCenterException;
-import org.mifosplatform.portfolio.group.exception.InvalidGroupStateTransitionException;
+import org.mifosplatform.portfolio.group.exception.*;
 import org.mifosplatform.useradministration.domain.AppUser;
 import org.springframework.data.jpa.domain.AbstractPersistable;
 
@@ -122,15 +100,19 @@ public final class Group extends AbstractPersistable<Long> {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "center", orphanRemoval = true)
     private Set<StaffAssignmentHistory> staffHistory;
 
+    @Column(name="mobile_no", nullable = true)
+    private String mobileNo;
+
     // JPA default constructor for entity
     protected Group() {
         this.name = null;
+        this.mobileNo = null;
         this.externalId = null;
         this.clientMembers = new HashSet<>();
     }
 
     public static Group newGroup(final Office office, final Staff staff, final Group parent, final GroupLevel groupLevel,
-            final String name, final String externalId, final boolean active, final LocalDate activationDate,
+            final String name, final String mobileNo, final String externalId, final boolean active, final LocalDate activationDate,
             final Set<Client> clientMembers, final Set<Group> groupMembers, final LocalDate submittedOnDate, final AppUser currentUser) {
 
         // By default new group is created in PENDING status, unless explicitly
@@ -142,11 +124,11 @@ public final class Group extends AbstractPersistable<Long> {
             groupActivationDate = activationDate;
         }
 
-        return new Group(office, staff, parent, groupLevel, name, externalId, status, groupActivationDate, clientMembers, groupMembers,
+        return new Group(office, staff, parent, groupLevel, name, mobileNo, externalId, status, groupActivationDate, clientMembers, groupMembers,
                 submittedOnDate, currentUser);
     }
 
-    private Group(final Office office, final Staff staff, final Group parent, final GroupLevel groupLevel, final String name,
+    private Group(final Office office, final Staff staff, final Group parent, final GroupLevel groupLevel, final String name, final String mobileNo,
             final String externalId, final GroupingTypeStatus status, final LocalDate activationDate, final Set<Client> clientMembers,
             final Set<Group> groupMembers, final LocalDate submittedOnDate, final AppUser currentUser) {
 
@@ -166,6 +148,13 @@ public final class Group extends AbstractPersistable<Long> {
         } else {
             this.name = null;
         }
+
+        if (StringUtils.isNotBlank(mobileNo)) {
+            this.mobileNo = mobileNo.trim();
+        } else {
+            this.mobileNo = null;
+        }
+
         if (StringUtils.isNotBlank(externalId)) {
             this.externalId = externalId.trim();
         } else {
@@ -289,6 +278,12 @@ public final class Group extends AbstractPersistable<Long> {
             final String newValue = command.stringValueOfParameterNamed(GroupingTypesApiConstants.nameParamName);
             actualChanges.put(GroupingTypesApiConstants.nameParamName, newValue);
             this.name = StringUtils.defaultIfEmpty(newValue, null);
+        }
+
+        if (command.isChangeInStringParameterNamed(GroupingTypesApiConstants.mobileNoParamName, this.mobileNo)) {
+            final String newValue = command.stringValueOfParameterNamed(GroupingTypesApiConstants.mobileNoParamName);
+            actualChanges.put(GroupingTypesApiConstants.mobileNoParamName, newValue);
+            this.mobileNo = StringUtils.defaultIfEmpty(newValue, null);
         }
 
         final String dateFormatAsInput = command.dateFormat();
